@@ -416,7 +416,11 @@
             }
           }
         });
-        
+        // Calculate maximum value among all model counts
+        const maxModelValue = Math.max(
+          ...allModels.map(model => Math.max(...users.map(user => data.users[user].models[model] || 0))),
+          1
+        );
         // Pass/Fail Chart
         updateOrCreateChart('userPassFailChart', {
           type: 'bar',
@@ -457,11 +461,7 @@
             .flatMap(user => Object.keys(user.models))
         )];
         
-        // Calculate maximum value among all model counts
-        const maxModelValue = Math.max(
-          ...allModels.map(model => Math.max(...users.map(user => data.users[user].models[model] || 0))),
-          1
-        );
+        
 
         updateOrCreateChart('userModelChart', {
           type: 'bar',
