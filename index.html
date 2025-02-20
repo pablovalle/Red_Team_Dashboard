@@ -360,7 +360,10 @@
 
         // Ordenamos usuarios por score para la tabla
         const sortedUsers = Object.entries(users)
-          .sort(([, a], [, b]) => b.score - a.score);
+        .sort(([, a], [, b]) => {
+          const sumA = a.pass + a.failLow + a.failMedium + a.failHigh + a.failCritical;
+          const sumB = b.pass + b.failLow + b.failMedium + b.failHigh + b.failCritical;
+          return sumB - sumA;});
 
         // Rellenamos la tabla
         const tbody = document.querySelector('#userClassification tbody');
