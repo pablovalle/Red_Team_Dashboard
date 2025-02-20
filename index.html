@@ -77,25 +77,38 @@
         border-left: 5px solid #ffc107;
       }
       .ranking-box .counter { color: #ffc107; }
-      
-      .ranking-box ol {
-        list-style-position: inside;
-        padding: 0;
-        margin: 0;
-        text-align: left;
-        font-size: 1.2em;
+
+      /* NUEVOS estilos para las barras horizontales */
+      .metric-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
       }
-      .ranking-box li {
-        padding: 10px 0;
-        border-bottom: 1px solid rgba(0,0,0,0.1);
-        color: #2c3e50;
-        font-weight: 500;
+      .metric-label {
+        width: 60px; 
+        text-align: right;
+        margin-right: 10px;
+        font-weight: bold;
       }
-      .ranking-box li:last-child {
-        border-bottom: none;
+      .progress-bar {
+        flex: 1;
+        background-color: #eee;
+        border-radius: 4px;
+        height: 12px;
+        position: relative;
+        overflow: hidden;
       }
-      
-      /* Rest of the styles remain the same */
+      .progress {
+        height: 100%;
+        border-radius: 4px;
+      }
+      .progress-pass {
+        background-color: #28a745; /* Verde */
+      }
+      .progress-fail {
+        background-color: #dc3545; /* Rojo */
+      }
+
       .charts-row {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -152,39 +165,58 @@
     </style>
   </head>
   <body>
-    <!-- Rest of the HTML remains exactly the same -->
     <div class="container">
       <h1>Red Teaming Dashboard</h1>
 
       <div class="metrics-container">
+        <!-- Caja 1: Total PASS -->
         <div class="metric-box pass-box">
           <h2>Total PASS <div class="metric-icon">✓</div></h2>
           <div id="totalPass" class="counter">0</div>
         </div>
+
+        <!-- Caja 2: Total FAIL -->
         <div class="metric-box fail-box">
           <h2>Total FAIL <div class="metric-icon">✗</div></h2>
           <div id="totalFail" class="counter">0</div>
         </div>
+
+        <!-- Caja 3: Sustituimos Top 3 Users por las barras de porcentaje -->
         <div class="metric-box ranking-box">
-          <h2>Top 3 Users <div class="metric-icon">🏆</div></h2>
-          <ol id="topUsers"></ol>
+          <h2>Porcentajes <div class="metric-icon">📊</div></h2>
+          <!-- Barra de PASS -->
+          <div class="metric-row">
+            <span class="metric-label" id="passLabel">PASS: 0%</span>
+            <div class="progress-bar">
+              <div class="progress progress-pass" id="passBar" style="width: 0%;"></div>
+            </div>
+          </div>
+          <!-- Barra de FAIL -->
+          <div class="metric-row">
+            <span class="metric-label" id="failLabel">FAIL: 0%</span>
+            <div class="progress-bar">
+              <div class="progress progress-fail" id="failBar" style="width: 0%;"></div>
+            </div>
+          </div>
         </div>
       </div>
+
       <h2>Stats for each User</h2>
-        <table id="userClassification">
-          <thead>
-            <tr>
-              <th>User</th>
-              <th>PASS</th>
-              <th>FAIL Low</th>
-              <th>FAIL Medium</th>
-              <th>FAIL High</th>
-              <th>FAIL Critical</th>
-              <th>Points</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+      <table id="userClassification">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>PASS</th>
+            <th>FAIL Low</th>
+            <th>FAIL Medium</th>
+            <th>FAIL High</th>
+            <th>FAIL Critical</th>
+            <th>Points</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
       <div class="charts-row">
         <div class="chart-wrapper">
           <h3 class="chart-title">Points for User</h3>
@@ -206,17 +238,14 @@
           <canvas id="categoriesChart"></canvas>
         </div>
       </div>
-
-      
     </div>
 
     <script>
-      // JavaScript remains exactly the same as in previous version
       let charts = {};
       const MODEL_COLORS = {
         'chatgpt': '#00A67E', // ChatGPT green
         'gpt4': '#4A90E2',    // Blue
-        'claude': '#7B61FF',   // Claude purple
+        'claude': '#7B61FF',  // Claude purple
         'gemini': '#1EA362',  // Gemini green
         'llama': '#FF6B6B',   // Red
         'mistral': '#FFB347', // Orange
@@ -261,7 +290,7 @@
           const notes = row[7];
           const failLevel = getFailLevel(notes);
 
-          // Initialize user data
+          // Inicializar user
           if(!result.users[user]) {
             result.users[user] = {
               pass: 0,
@@ -274,12 +303,12 @@
             };
           }
 
-          // Initialize category data
+          // Inicializar categoría
           if(!result.categories[category]) {
             result.categories[category] = { pass: 0, fail: 0 };
           }
 
-          // Initialize model data for user
+          // Inicializar modelo para el user
           if(!result.users[user].models[model]) {
             result.users[user].models[model] = 0;
           }
@@ -302,13 +331,25 @@
       }
 
       function updateUI({ totalPass, totalFail, users }) {
-        document.getElementById('totalPass').textContent = `${totalPass} (${(totalPass / (totalPass + totalFail) * 100).toFixed(2)}%)`;
-        document.getElementById('totalFail').textContent = `${totalFail} (${(totalFail / (totalPass + totalFail) * 100).toFixed(2)}%)`;
+        const total = totalPass + totalFail || 1; // Evitar división por cero
+        const passPercent = ((totalPass / total) * 100).toFixed(2);
+        const failPercent = ((totalFail / total) * 100).toFixed(2);
 
-        // Sort users by score
+        // Actualizamos las cajas principales
+        document.getElementById('totalPass').textContent = `${totalPass} (${passPercent}%)`;
+        document.getElementById('totalFail').textContent = `${totalFail} (${failPercent}%)`;
+
+        // Actualizamos las barras horizontales
+        document.getElementById('passLabel').textContent = `PASS: ${passPercent}%`;
+        document.getElementById('failLabel').textContent = `FAIL: ${failPercent}%`;
+        document.getElementById('passBar').style.width = passPercent + '%';
+        document.getElementById('failBar').style.width = failPercent + '%';
+
+        // Ordenamos usuarios por score para la tabla
         const sortedUsers = Object.entries(users)
           .sort(([, a], [, b]) => b.score - a.score);
 
+        // Rellenamos la tabla
         const tbody = document.querySelector('#userClassification tbody');
         tbody.innerHTML = sortedUsers.map(([user, data]) => `
           <tr>
@@ -321,11 +362,6 @@
             <td>${data.score}</td>
           </tr>
         `).join('');
-
-        document.getElementById('topUsers').innerHTML = sortedUsers
-          .slice(0, 3)
-          .map(([user, data]) => `<li>${user}: ${data.score} pts</li>`)
-          .join('');
       }
 
       function updateCharts(data) {
@@ -459,15 +495,6 @@
           charts[id].destroy();
         }
         charts[id] = new Chart(document.getElementById(id), config);
-      }
-
-      function getRandomColor() {
-        const letters = '0123456789ABCDEF';
-        let color = '#';
-        for (let i = 0; i < 6; i++) {
-          color += letters[Math.floor(Math.random() * 16)];
-        }
-        return color;
       }
 
       async function refreshData() {
