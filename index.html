@@ -412,18 +412,10 @@
               legend: { display: true }
             },
             scales: {
-              y: { beginAtZero: true, max: maxLang }
+              y: { beginAtZero: true, max: maxLang+2 }
             }
           }
         });
-        const passData = users.map(user => data.users[user].pass);
-        const failData = users.map(user => 
-          data.users[user].failLow +
-          data.users[user].failMedium +
-          data.users[user].failHigh +
-          data.users[user].failCritical
-        );
-        const maxPassFail = Math.max(Math.max(...passData, 0)+ Math.max(...failData, 0), 1);
         
         // Pass/Fail Chart
         updateOrCreateChart('userPassFailChart', {
@@ -454,7 +446,7 @@
             maintainAspectRatio: false,
             scales: {
               x: { stacked: true },
-              y: { stacked: true, beginAtZero: true, max: maxPassFail+2 }
+              y: { stacked: true, beginAtZero: true, max: maxModelValue+2 }
             }
           }
         });
@@ -521,7 +513,8 @@
             maintainAspectRatio: false,
             scales: {
               y: { 
-                beginAtZero: true
+                beginAtZero: true,
+                max: maxValue+2
               }
             }
           }
