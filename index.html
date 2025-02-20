@@ -235,7 +235,7 @@
           <canvas id="categoriesChart"></canvas>
         </div>
         <div class="chart-wrapper">
-          <h3 class="chart-title">PASS/FAIL for Language</h3>
+          <h3 class="chart-title">Languages</h3>
           <canvas id="LanguageScoreChart"></canvas>
         </div>
       </div>
@@ -381,25 +381,20 @@
         const userScores = users.map(user => data.users[user].score);
         
         // User Score Chart
-        updateOrCreateChart('categoriesChart', {
+        updateOrCreateChart('LanguageScoreChart', {
           type: 'bar',
           data: {
             labels: languages,
             datasets: [
               {
-                label: 'English',
-                data: languages.map(lang => data.languages.english),
+                label: 'PASS',
+                data: languages.map(lang => data.languages[lang].pass),
                 backgroundColor: '#75b798'
               },
               {
-                label: 'Chinese',
-                data: languages.map(lang => data.languages.chinese),
+                label: 'FAIL',
+                data: languages.map(lang => data.languages[lang].fail),
                 backgroundColor: '#e35d6a'
-              },
-              {
-                label: 'Spanish',
-                data: languages.map(lang => data.languages.spanish),
-                backgroundColor: '#7B61FF'
               }
             ]
           },
