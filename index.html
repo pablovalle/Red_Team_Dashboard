@@ -284,7 +284,8 @@
           totalFail: 0,
           users: {},
           categories: {},
-          models: {}
+          models: {},
+          languages: {}
         };
 
         data.forEach(row => {
@@ -292,6 +293,7 @@
 
           const user = row[1];
           const model = row[2];
+          const lang= row[3]
           const category = row[4];
           const resultStr = row[6].toLowerCase();
           const notes = row[7];
@@ -314,7 +316,9 @@
           if(!result.categories[category]) {
             result.categories[category] = { pass: 0, fail: 0 };
           }
-
+          if(!result.languages[lang]){
+            result.languages[lang]=0
+          }
           // Inicializar modelo para el user
           if(!result.users[user].models[model]) {
             result.users[user].models[model] = 0;
@@ -332,6 +336,7 @@
             result.users[user].score += getFailPoints(failLevel);
             result.categories[category].fail++;
           }
+          result.languages[lang]+=1;
         });
 
         return result;
@@ -383,17 +388,17 @@
             datasets: [
               {
                 label: 'English',
-                data: languages.map(lang => data.languages[lang]),
+                data: languages.map(lang => data.languages.english),
                 backgroundColor: '#75b798'
               },
               {
                 label: 'Chinese',
-                data: languages.map(lang => data.languages[lang]),
+                data: languages.map(lang => data.languages.chinese),
                 backgroundColor: '#e35d6a'
               },
               {
                 label: 'Spanish',
-                data: languages.map(lang => data.languages[lang]),
+                data: languages.map(lang => data.languages.spanish),
                 backgroundColor: '#7B61FF'
               }
             ]
