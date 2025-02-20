@@ -336,8 +336,8 @@
         const failPercent = ((totalFail / total) * 100).toFixed(2);
 
         // Actualizamos las cajas principales
-        document.getElementById('totalPass').textContent = `${totalPass} (${passPercent}%)`;
-        document.getElementById('totalFail').textContent = `${totalFail} (${failPercent}%)`;
+        document.getElementById('totalPass').textContent = `${totalPass}`;
+        document.getElementById('totalFail').textContent = `${totalFail}`;
 
         // Actualizamos las barras horizontales
         document.getElementById('passLabel').textContent = `PASS: ${passPercent}%`;
