@@ -417,6 +417,10 @@
           }
         });
         // Calculate maximum value among all model counts
+        const allModels = [...new Set(
+          Object.values(data.users)
+            .flatMap(user => Object.keys(user.models))
+        )];
         const maxModelValue = Math.max(
           ...allModels.map(model => Math.max(...users.map(user => data.users[user].models[model] || 0))),
           1
@@ -456,10 +460,7 @@
         });
 
         // Models per User Chart
-        const allModels = [...new Set(
-          Object.values(data.users)
-            .flatMap(user => Object.keys(user.models))
-        )];
+        
         
         
 
