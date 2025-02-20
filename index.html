@@ -136,6 +136,9 @@
         border: 1px solid #eee;
         text-align: right;
       }
+      th, td2{
+        text-align: left;
+      }
       
       th { 
         background: #f8f9fa; 
@@ -308,7 +311,7 @@
         const tbody = document.querySelector('#userClassification tbody');
         tbody.innerHTML = sortedUsers.map(([user, data]) => `
           <tr>
-            <td>${user}</td>
+            <td2>${user}</td2>
             <td>${data.pass}</td>
             <td>${data.failLow}</td>
             <td>${data.failMedium}</td>
