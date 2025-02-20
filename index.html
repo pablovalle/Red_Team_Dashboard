@@ -317,7 +317,7 @@
             result.categories[category] = { pass: 0, fail: 0 };
           }
           if(!result.languages[lang]){
-            result.languages[lang]=0
+            result.languages[lang]= { pass: 0, fail: 0 };
           }
           // Inicializar modelo para el user
           if(!result.users[user].models[model]) {
@@ -330,13 +330,14 @@
             result.users[user].pass++;
             result.users[user].score += 1;
             result.categories[category].pass++;
+            result.languages[lang].pass++;
           } else if (resultStr === 'fail') {
             result.totalFail++;
             result.users[user][`fail${failLevel.charAt(0).toUpperCase() + failLevel.slice(1)}`]++;
             result.users[user].score += getFailPoints(failLevel);
             result.categories[category].fail++;
+            result.languages[lang].fail++;
           }
-          result.languages[lang]+=1;
         });
 
         return result;
