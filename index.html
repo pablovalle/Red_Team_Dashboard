@@ -211,31 +211,32 @@
             <th>FAIL Medium</th>
             <th>FAIL High</th>
             <th>FAIL Critical</th>
-            <th>Points</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
 
       <div class="charts-row">
-        <div class="chart-wrapper">
-          <h3 class="chart-title">Points for User</h3>
-          <canvas id="userScoreChart"></canvas>
-        </div>
+        
         <div class="chart-wrapper">
           <h3 class="chart-title">PASS/FAIL for User</h3>
           <canvas id="userPassFailChart"></canvas>
         </div>
-      </div>
-
-      <div class="charts-row">
         <div class="chart-wrapper">
           <h3 class="chart-title">Tests for each Model and User</h3>
           <canvas id="userModelChart"></canvas>
         </div>
+      </div>
+
+      <div class="charts-row">
+        
         <div class="chart-wrapper">
           <h3 class="chart-title">Safety Categories</h3>
           <canvas id="categoriesChart"></canvas>
+        </div>
+        <div class="chart-wrapper">
+          <h3 class="chart-title">PASS/FAIL for Language</h3>
+          <canvas id="LanguageScoreChart"></canvas>
         </div>
       </div>
     </div>
@@ -250,6 +251,12 @@
         'llama': '#FF6B6B',   // Red
         'mistral': '#FFB347', // Orange
         'default': '#999999'  // Gray for any other model
+      };
+      const LANGUAGE_COLORS = {
+        'spanish': '#00A67E', // ChatGPT green
+        'chinese': '#4A90E2',    // Blue
+        'english': '#7B61FF',  // Claude purple
+        'spanish': '#1EA362' // Gemini green
       };
       
       function getFailLevel(notes) {
@@ -359,25 +366,37 @@
             <td>${data.failMedium}</td>
             <td>${data.failHigh}</td>
             <td>${data.failCritical}</td>
-            <td>${data.score}</td>
           </tr>
         `).join('');
       }
 
       function updateCharts(data) {
         const users = Object.keys(data.users);
+        const languages= Object.keys(data.languages)
         const userScores = users.map(user => data.users[user].score);
         
         // User Score Chart
-        updateOrCreateChart('userScoreChart', {
+        updateOrCreateChart('categoriesChart', {
           type: 'bar',
           data: {
-            labels: users,
-            datasets: [{
-              label: 'Puntos',
-              data: userScores,
-              backgroundColor: '#4CAF50'
-            }]
+            labels: languages,
+            datasets: [
+              {
+                label: 'English',
+                data: languages.map(lang => data.languages[lang]),
+                backgroundColor: '#75b798'
+              },
+              {
+                label: 'Chinese',
+                data: languages.map(lang => data.languages[lang]),
+                backgroundColor: '#e35d6a'
+              },
+              {
+                label: 'Spanish',
+                data: languages.map(lang => data.languages[lang]),
+                backgroundColor: '#7B61FF'
+              }
+            ]
           },
           options: {
             animation: false,
