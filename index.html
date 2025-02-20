@@ -383,7 +383,9 @@
         const users = Object.keys(data.users);
         const languages= Object.keys(data.languages)
         const userScores = users.map(user => data.users[user].score);
-        
+        const maxLang = Math.max(
+          ...Object.values(data.languages).map(lang => Math.max(lang.pass, lang.fail))
+        );
         // User Score Chart
         updateOrCreateChart('LanguageScoreChart', {
           type: 'bar',
@@ -410,11 +412,19 @@
               legend: { display: true }
             },
             scales: {
-              y: { beginAtZero: true }
+              y: { beginAtZero: true, max: maxLang }
             }
           }
         });
-
+        const passData = users.map(user => data.users[user].pass);
+        const failData = users.map(user => 
+          data.users[user].failLow +
+          data.users[user].failMedium +
+          data.users[user].failHigh +
+          data.users[user].failCritical
+        );
+        const maxPassFail = Math.max(Math.max(...passData, 0)+ Math.max(...failData, 0), 1);
+        
         // Pass/Fail Chart
         updateOrCreateChart('userPassFailChart', {
           type: 'bar',
@@ -444,7 +454,7 @@
             maintainAspectRatio: false,
             scales: {
               x: { stacked: true },
-              y: { stacked: true, beginAtZero: true }
+              y: { stacked: true, beginAtZero: true, max: maxPassFail+2 }
             }
           }
         });
@@ -454,6 +464,12 @@
           Object.values(data.users)
             .flatMap(user => Object.keys(user.models))
         )];
+        
+        // Calculate maximum value among all model counts
+        const maxModelValue = Math.max(
+          ...allModels.map(model => Math.max(...users.map(user => data.users[user].models[model] || 0))),
+          1
+        );
 
         updateOrCreateChart('userModelChart', {
           type: 'bar',
@@ -471,7 +487,7 @@
             maintainAspectRatio: false,
             scales: {
               x: { stacked: true },
-              y: { stacked: true, beginAtZero: true }
+              y: { stacked: true, beginAtZero: true, max: maxModelValue+2}
             }
           }
         });
@@ -505,8 +521,7 @@
             maintainAspectRatio: false,
             scales: {
               y: { 
-                beginAtZero: true,
-                max: maxValue + 2
+                beginAtZero: true
               }
             }
           }
