@@ -535,49 +535,42 @@
           }
         });
 
-        // New Chart: PASS/FAIL for Model (Diverging horizontal bar chart)
-const modelNames = Object.keys(data.models);
-const maxPass = Math.max(...modelNames.map(m => data.models[m].pass));
-const maxFail = Math.max(...modelNames.map(m => data.models[m].fail));
-updateOrCreateChart('modelPassFailChart', {
-  type: 'bar',
-  data: {
-    labels: modelNames,
-    datasets: [
-      {
-        label: 'PASS',
-        data: modelNames.map(m => data.models[m].pass),
-        backgroundColor: '#28a745' // Green for PASS
-      },
-      {
-        label: 'FAIL',
-        data: modelNames.map(m => -data.models[m].fail), // Negative for diverging effect
-        backgroundColor: '#dc3545' // Red for FAIL
-      }
-    ]
-  },
-  options: {
-    indexAxis: 'y', // Horizontal bars
-    animation: false,
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      x: {
-        beginAtZero: true,
-        min: -maxFail - 2,
-        max: maxPass + 2,
-        ticks: {
-          callback: function(value) {
-            return Math.abs(value); // Display absolute values on the axis
+        // PASS/FAIL for Model Chart similar to Languages chart
+        const modelNames = Object.keys(data.models);
+        const maxModelValue = Math.max(...modelNames.map(m => Math.max(data.models[m].pass, data.models[m].fail)));
+        updateOrCreateChart('modelPassFailChart', {
+        type: 'bar',
+        data: {
+          labels: modelNames,
+          datasets: [
+            {
+              label: 'PASS',
+              data: modelNames.map(m => data.models[m].pass),
+              backgroundColor: '#28a745' // Green for PASS
+            },
+            {
+              label: 'FAIL',
+              data: modelNames.map(m => data.models[m].fail),
+              backgroundColor: '#dc3545' // Red for FAIL
+            }
+          ]
+        },
+        options: {
+          animation: false,
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: true }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: maxModelValue + 2 // Y-axis maximum is the maximum count + 2
+            }
           }
         }
-      },
-      y: {
-        beginAtZero: true
-      }
-    }
-  }
-});
+        });
+
 
 
         // New Chart: FAIL per Category and Model
