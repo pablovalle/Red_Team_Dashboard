@@ -16,7 +16,7 @@
       }
 
       .ranking-box h2 {
-        font-weight: 800;  /* Made bolder */
+        font-weight: 800;
       }
 
       .metrics-container { 
@@ -78,7 +78,7 @@
       }
       .ranking-box .counter { color: #ffc107; }
 
-      /* NUEVOS estilos para las barras horizontales */
+      /* Horizontal bar styles */
       .metric-row {
         display: flex;
         align-items: center;
@@ -103,10 +103,10 @@
         border-radius: 4px;
       }
       .progress-pass {
-        background-color: #28a745; /* Verde */
+        background-color: #28a745;
       }
       .progress-fail {
-        background-color: #dc3545; /* Rojo */
+        background-color: #dc3545;
       }
 
       .charts-row {
@@ -181,7 +181,7 @@
           <div id="totalFail" class="counter">0</div>
         </div>
 
-        <!-- Caja 3: Sustituimos Top 3 Users por las barras de porcentaje -->
+        <!-- Caja 3: Global Results with horizontal bars -->
         <div class="metric-box ranking-box">
           <h2>Global Results</h2>
           <!-- Barra de PASS -->
@@ -217,7 +217,6 @@
       </table>
 
       <div class="charts-row">
-        
         <div class="chart-wrapper">
           <h3 class="chart-title">PASS/FAIL for User</h3>
           <canvas id="userPassFailChart"></canvas>
@@ -229,7 +228,6 @@
       </div>
 
       <div class="charts-row">
-        
         <div class="chart-wrapper">
           <h3 class="chart-title">Safety Categories</h3>
           <canvas id="categoriesChart"></canvas>
@@ -239,24 +237,35 @@
           <canvas id="LanguageScoreChart"></canvas>
         </div>
       </div>
+
+      <!-- New row with the two additional charts -->
+      <div class="charts-row">
+        <div class="chart-wrapper">
+          <h3 class="chart-title">PASS/FAIL for Model</h3>
+          <canvas id="modelPassFailChart"></canvas>
+        </div>
+        <div class="chart-wrapper">
+          <h3 class="chart-title">FAIL per Category and Model</h3>
+          <canvas id="categoryModelFailChart"></canvas>
+        </div>
+      </div>
     </div>
 
     <script>
       let charts = {};
       const MODEL_COLORS = {
-        'chatgpt': '#00A67E', // ChatGPT green
-        'gpt4-o': '#4A90E2',    // Blue
-        'claude': '#7B61FF',  // Claude purple
-        'qwen': '#1EA362',  // Gemini green
-        'llama': '#FF6B6B',   // Red
-        'mistral': '#FFB347', // Orange
-        'default': '#999999'  // Gray for any other model
+        'chatgpt': '#00A67E',
+        'gpt4-o': '#4A90E2',
+        'claude': '#7B61FF',
+        'qwen': '#1EA362',
+        'llama': '#FF6B6B',
+        'mistral': '#FFB347',
+        'default': '#999999'
       };
       const LANGUAGE_COLORS = {
-        'spanish': '#00A67E', // ChatGPT green
-        'chinese': '#4A90E2',    // Blue
-        'english': '#7B61FF',  // Claude purple
-        'spanish': '#1EA362' // Gemini green
+        'spanish': '#00A67E',
+        'chinese': '#4A90E2',
+        'english': '#7B61FF'
       };
       
       function getFailLevel(notes) {
@@ -293,13 +302,13 @@
 
           const user = row[1];
           const model = row[2];
-          const lang= row[3]
+          const lang = row[3];
           const category = row[4];
           const resultStr = row[6].toLowerCase();
           const notes = row[7];
           const failLevel = getFailLevel(notes);
 
-          // Inicializar user
+          // Initialize user
           if(!result.users[user]) {
             result.users[user] = {
               pass: 0,
@@ -312,18 +321,32 @@
             };
           }
 
-          // Inicializar categoría
+          // Initialize category
           if(!result.categories[category]) {
             result.categories[category] = { pass: 0, fail: 0 };
           }
+          // Initialize language
           if(!result.languages[lang]){
-            result.languages[lang]= { pass: 0, fail: 0 };
+            result.languages[lang] = { pass: 0, fail: 0 };
           }
-          // Inicializar modelo para el user
+          // Initialize model for user
           if(!result.users[user].models[model]) {
             result.users[user].models[model] = 0;
           }
           result.users[user].models[model]++;
+
+          // Global models aggregation
+          if(!result.models[model]){
+            result.models[model] = { pass: 0, fail: 0 };
+          }
+
+          // Initialize category-model FAIL aggregation container
+          if(!result.categoryModels) {
+            result.categoryModels = {};
+          }
+          if(!result.categoryModels[category]){
+            result.categoryModels[category] = {};
+          }
 
           if(resultStr === 'pass') {
             result.totalPass++;
@@ -331,12 +354,18 @@
             result.users[user].score += 1;
             result.categories[category].pass++;
             result.languages[lang].pass++;
+            result.models[model].pass++;
           } else if (resultStr === 'fail') {
             result.totalFail++;
-            result.users[user][`fail${failLevel.charAt(0).toUpperCase() + failLevel.slice(1)}`]++;
+            result.users[user]['fail' + failLevel.charAt(0).toUpperCase() + failLevel.slice(1)]++;
             result.users[user].score += getFailPoints(failLevel);
             result.categories[category].fail++;
             result.languages[lang].fail++;
+            result.models[model].fail++;
+            if(!result.categoryModels[category][model]){
+              result.categoryModels[category][model] = 0;
+            }
+            result.categoryModels[category][model]++;
           }
         });
 
@@ -344,28 +373,25 @@
       }
 
       function updateUI({ totalPass, totalFail, users }) {
-        const total = totalPass + totalFail || 1; // Evitar división por cero
+        const total = totalPass + totalFail || 1;
         const passPercent = ((totalPass / total) * 100).toFixed(2);
         const failPercent = ((totalFail / total) * 100).toFixed(2);
 
-        // Actualizamos las cajas principales
         document.getElementById('totalPass').textContent = `${totalPass}`;
         document.getElementById('totalFail').textContent = `${totalFail}`;
 
-        // Actualizamos las barras horizontales
         document.getElementById('passLabel').textContent = `PASS: ${passPercent}%`;
         document.getElementById('failLabel').textContent = `FAIL: ${failPercent}%`;
         document.getElementById('passBar').style.width = passPercent + '%';
         document.getElementById('failBar').style.width = failPercent + '%';
 
-        // Ordenamos usuarios por score para la tabla
         const sortedUsers = Object.entries(users)
         .sort(([, a], [, b]) => {
           const sumA = a.pass + a.failLow + a.failMedium + a.failHigh + a.failCritical;
           const sumB = b.pass + b.failLow + b.failMedium + b.failHigh + b.failCritical;
-          return sumB - sumA;});
+          return sumB - sumA;
+        });
 
-        // Rellenamos la tabla
         const tbody = document.querySelector('#userClassification tbody');
         tbody.innerHTML = sortedUsers.map(([user, data]) => `
           <tr>
@@ -381,12 +407,12 @@
 
       function updateCharts(data) {
         const users = Object.keys(data.users);
-        const languages= Object.keys(data.languages)
+        const languages = Object.keys(data.languages);
         const userScores = users.map(user => data.users[user].score);
         const maxLang = Math.max(
           ...Object.values(data.languages).map(lang => Math.max(lang.pass, lang.fail))
         );
-        // User Score Chart
+        // Language Score Chart
         updateOrCreateChart('LanguageScoreChart', {
           type: 'bar',
           data: {
@@ -408,15 +434,13 @@
             animation: false,
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-              legend: { display: true }
-            },
+            plugins: { legend: { display: true } },
             scales: {
               y: { beginAtZero: true, max: maxLang+2 }
             }
           }
         });
-        // Calculate maximum value among all model counts
+        // Maximum value among all model counts
         const allModels = [...new Set(
           Object.values(data.users)
             .flatMap(user => Object.keys(user.models))
@@ -425,7 +449,7 @@
           ...allModels.map(model => Math.max(...users.map(user => data.users[user].models[model] || 0))),
           1
         );
-        // Pass/Fail Chart
+        // PASS/FAIL for User Chart
         updateOrCreateChart('userPassFailChart', {
           type: 'bar',
           data: {
@@ -458,12 +482,7 @@
             }
           }
         });
-
-        // Models per User Chart
-        
-        
-        
-
+        // Tests for each Model and User Chart
         updateOrCreateChart('userModelChart', {
           type: 'bar',
           data: {
@@ -480,17 +499,15 @@
             maintainAspectRatio: false,
             scales: {
               x: { stacked: true },
-              y: { stacked: true, beginAtZero: true, max: maxModelValue+2}
+              y: { stacked: true, beginAtZero: true, max: maxModelValue+2 }
             }
           }
         });
-
-        // Categories Chart
+        // Safety Categories Chart
         const categories = Object.keys(data.categories);
         const maxValue = Math.max(
           ...Object.values(data.categories).map(cat => Math.max(cat.pass, cat.fail))
         );
-
         updateOrCreateChart('categoriesChart', {
           type: 'bar',
           data: {
@@ -513,10 +530,70 @@
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-              y: { 
-                beginAtZero: true,
-                max: maxValue+2
+              y: { beginAtZero: true, max: maxValue+2 }
+            }
+          }
+        });
+
+        // New Chart: PASS/FAIL for Model
+        const modelNames = Object.keys(data.models);
+        const maxModelCount = Math.max(...modelNames.map(m => Math.max(data.models[m].pass, data.models[m].fail)), 0);
+        updateOrCreateChart('modelPassFailChart', {
+          type: 'bar',
+          data: {
+            labels: modelNames,
+            datasets: [
+              {
+                label: 'PASS',
+                data: modelNames.map(m => data.models[m].pass),
+                backgroundColor: modelNames.map(m => MODEL_COLORS[m.toLowerCase()] || MODEL_COLORS.default)
+              },
+              {
+                label: 'FAIL',
+                data: modelNames.map(m => data.models[m].fail),
+                backgroundColor: '#e35d6a'
               }
+            ]
+          },
+          options: {
+            animation: false,
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { stacked: true },
+              y: { stacked: true, beginAtZero: true, max: maxModelCount+2 }
+            }
+          }
+        });
+
+        // New Chart: FAIL per Category and Model
+        const categoryNames = Object.keys(data.categoryModels);
+        let modelSet = new Set();
+        categoryNames.forEach(cat => {
+          Object.keys(data.categoryModels[cat]).forEach(model => modelSet.add(model));
+        });
+        const allCatModels = Array.from(modelSet);
+        const maxStackedFail = Math.max(...categoryNames.map(cat => {
+          return allCatModels.reduce((sum, model) => sum + (data.categoryModels[cat][model] || 0), 0);
+        }), 0);
+        const datasets = allCatModels.map(model => ({
+          label: model,
+          data: categoryNames.map(cat => data.categoryModels[cat][model] || 0),
+          backgroundColor: MODEL_COLORS[model.toLowerCase()] || MODEL_COLORS.default
+        }));
+        updateOrCreateChart('categoryModelFailChart', {
+          type: 'bar',
+          data: {
+            labels: categoryNames,
+            datasets: datasets
+          },
+          options: {
+            animation: false,
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { stacked: true },
+              y: { stacked: true, beginAtZero: true, max: maxStackedFail+2 }
             }
           }
         });
