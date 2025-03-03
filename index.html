@@ -573,38 +573,40 @@
 
 
 
-        // New Chart: FAIL per Category and Model
-        const categoryNames = Object.keys(data.categoryModels);
-        let modelSet = new Set();
-        categoryNames.forEach(cat => {
-          Object.keys(data.categoryModels[cat]).forEach(model => modelSet.add(model));
-        });
-        const allCatModels = Array.from(modelSet);
-        const maxStackedFail = Math.max(...categoryNames.map(cat => {
-          return allCatModels.reduce((sum, model) => sum + (data.categoryModels[cat][model] || 0), 0);
-        }), 0);
-        const datasets = allCatModels.map(model => ({
-          label: model,
-          data: categoryNames.map(cat => data.categoryModels[cat][model] || 0),
-          backgroundColor: MODEL_COLORS[model.toLowerCase()] || MODEL_COLORS.default
-        }));
-        updateOrCreateChart('categoryModelFailChart', {
-          type: 'bar',
-          data: {
-            labels: categoryNames,
-            datasets: datasets
-          },
-          options: {
-            animation: false,
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              x: { stacked: true },
-              y: { stacked: true, beginAtZero: true, max: maxStackedFail+2 }
-            }
+        // FAIL per Category and Model Chart similar to Languages chart
+      const categoryNames = Object.keys(data.categoryModels);
+      let modelSet = new Set();
+      categoryNames.forEach(cat => {
+        Object.keys(data.categoryModels[cat]).forEach(model => modelSet.add(model));
+      });
+      const allCatModels = Array.from(modelSet);
+      // Calcula el valor máximo individual entre todas las barras
+      const maxIndividualFail = Math.max(...categoryNames.map(cat => {
+        return Math.max(...allCatModels.map(model => data.categoryModels[cat][model] || 0));
+      }), 0);
+      const datasets = allCatModels.map(model => ({
+        label: model,
+        data: categoryNames.map(cat => data.categoryModels[cat][model] || 0),
+        backgroundColor: MODEL_COLORS[model.toLowerCase()] || MODEL_COLORS.default
+      }));
+      updateOrCreateChart('categoryModelFailChart', {
+        type: 'bar',
+        data: {
+          labels: categoryNames,
+          datasets: datasets
+        },
+        options: {
+          animation: false,
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: true } },
+          scales: {
+            x: { stacked: false },
+            y: { beginAtZero: true, max: maxIndividualFail + 2 }
           }
-        });
-      }
+        }
+      });
+
 
       function updateOrCreateChart(id, config) {
         if (charts[id]) {
