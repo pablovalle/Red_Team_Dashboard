@@ -535,36 +535,50 @@
           }
         });
 
-        // New Chart: PASS/FAIL for Model
-        const modelNames = Object.keys(data.models);
-        const maxModelCount = Math.max(...modelNames.map(m => Math.max(data.models[m].pass, data.models[m].fail)), 0);
-        updateOrCreateChart('modelPassFailChart', {
-          type: 'bar',
-          data: {
-            labels: modelNames,
-            datasets: [
-              {
-                label: 'PASS',
-                data: modelNames.map(m => data.models[m].pass),
-                backgroundColor: modelNames.map(m => MODEL_COLORS[m.toLowerCase()] || MODEL_COLORS.default)
-              },
-              {
-                label: 'FAIL',
-                data: modelNames.map(m => data.models[m].fail),
-                backgroundColor: '#e35d6a'
-              }
-            ]
-          },
-          options: {
-            animation: false,
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              x: { stacked: true },
-              y: { stacked: true, beginAtZero: true, max: maxModelCount+2 }
-            }
+        // New Chart: PASS/FAIL for Model (Diverging horizontal bar chart)
+const modelNames = Object.keys(data.models);
+const maxPass = Math.max(...modelNames.map(m => data.models[m].pass));
+const maxFail = Math.max(...modelNames.map(m => data.models[m].fail));
+updateOrCreateChart('modelPassFailChart', {
+  type: 'bar',
+  data: {
+    labels: modelNames,
+    datasets: [
+      {
+        label: 'PASS',
+        data: modelNames.map(m => data.models[m].pass),
+        backgroundColor: '#28a745' // Green for PASS
+      },
+      {
+        label: 'FAIL',
+        data: modelNames.map(m => -data.models[m].fail), // Negative for diverging effect
+        backgroundColor: '#dc3545' // Red for FAIL
+      }
+    ]
+  },
+  options: {
+    indexAxis: 'y', // Horizontal bars
+    animation: false,
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        beginAtZero: true,
+        min: -maxFail - 2,
+        max: maxPass + 2,
+        ticks: {
+          callback: function(value) {
+            return Math.abs(value); // Display absolute values on the axis
           }
-        });
+        }
+      },
+      y: {
+        beginAtZero: true
+      }
+    }
+  }
+});
+
 
         // New Chart: FAIL per Category and Model
         const categoryNames = Object.keys(data.categoryModels);
