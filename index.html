@@ -537,7 +537,7 @@
 
         // PASS/FAIL for Model Chart similar to Languages chart
         const modelNames = Object.keys(data.models);
-        const maxModelValue = Math.max(...modelNames.map(m => Math.max(data.models[m].pass, data.models[m].fail)));
+        const maxModelValue2 = Math.max(...modelNames.map(m => Math.max(data.models[m].pass, data.models[m].fail)));
         updateOrCreateChart('modelPassFailChart', {
         type: 'bar',
         data: {
@@ -565,7 +565,7 @@
           scales: {
             y: {
               beginAtZero: true,
-              max: maxModelValue + 2 // Y-axis maximum is the maximum count + 2
+              max: maxModelValue2 + 2 // Y-axis maximum is the maximum count + 2
             }
           }
         }
